@@ -1,33 +1,64 @@
-const fetchWeather = async (city = 'Amman') => {
+const GOVERNORATES = [
+    { id: 1,  name: 'Amman' },
+    { id: 2,  name: 'Zarqa' },
+    { id: 3,  name: 'Irbid' },
+    { id: 4,  name: 'Aqaba' },
+    { id: 5,  name: 'Mafraq' },
+    { id: 6,  name: 'Jerash' },
+    { id: 7,  name: 'Ajloun' },
+    { id: 8,  name: 'Madaba' },
+    { id: 9,  name: 'Balqa' },
+    { id: 10, name: 'Karak' },
+    { id: 11, name: 'Tafilah' },
+    { id: 12, name: "Ma'an" }
+];
+
+const getGovernorates = () => {
+    return GOVERNORATES;
+};
+
+const getGovernorateById = (id) => {
+    const numericId = Number(id);
+    return GOVERNORATES.find(gov => gov.id === numericId) || null;
+};
+
+const fetchWeatherByGovernorateId = async (id) => {
+    const governorate = getGovernorateById(id);
+    if (!governorate) {
+        const err = new Error(`Invalid governorate ID: ${id}`);
+        err.code = 'INVALID_GOVERNORATE';
+        throw err;
+    }
+
     try {
-        const apiKey = process.env.OPENWEATHER_API_KEY || 'REDACTED_API_KEY';
-        const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${apiKey}&units=metric`;
+        const baseUrl = process.env.OPENWEATHER_BASE_URL;
+        const apiKey  = process.env.OPENWEATHER_API_KEY;
+        const url     = `${baseUrl}?q=${encodeURIComponent(governorate.name)}&appid=${apiKey}&units=metric`;
 
         const response = await fetch(url);
         if (!response.ok) {
-            const errorData = await response.json();
-            return {
-                city,
-                error: errorData.message || 'Unable to fetch weather data'
-            };
+            console.error(`OpenWeather API error: ${response.status} for ${governorate.name}`);
+            return null;
         }
 
         const data = await response.json();
+
         return {
-            city: data.name,
+            id: governorate.id,
+            governorate: governorate.name,
             country: data.sys?.country,
             temp: data.main?.temp,
             feels_like: data.main?.feels_like,
             humidity: data.main?.humidity,
-            condition: data.weather?.[0]?.description,
-            icon: data.weather?.[0]?.icon ? `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png` : null
         };
     } catch (err) {
-        return {
-            city,
-            error: err.message || 'Failed to connect to weather service'
-        };
+        console.error(`Failed to fetch weather for ${governorate.name}:`, err.message);
+        return null;
     }
 };
 
-module.exports = { fetchWeather };
+module.exports = {
+    getGovernorates,
+    getGovernorateById,
+    fetchWeatherByGovernorateId
+};
