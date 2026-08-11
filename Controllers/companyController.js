@@ -1,13 +1,10 @@
 const { Op, Company, Category } = require('../lib');
 const { formatCompany, FormatCompanies } = require('../DTOs/company.dto');
 const { decodeId, decodeIds, ENTITY_TYPES } = require('../Hashing/idHasher');
-const { fetchWeather } = require('../services/weatherService');
 
 exports.getAll = async (req, res, next) => {
     try {
-        const { search, category, page, limit, deleted, city } = req.query;
-
-        const weather = await fetchWeather(city || 'Amman');
+        const { search, category, page, limit, deleted } = req.query;
 
         const pageNum  = parseInt(page)  || 1;
         const limitNum = parseInt(limit) || 10;
@@ -50,7 +47,6 @@ exports.getAll = async (req, res, next) => {
         }
 
         res.status(200).json({
-            weather,
             total:      count,
             page:       pageNum,
             totalPages: Math.ceil(count / limitNum),

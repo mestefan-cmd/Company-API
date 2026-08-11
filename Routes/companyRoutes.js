@@ -15,13 +15,6 @@ const router = express.Router();
  *       - basicAuth: []
  *     parameters:
  *       - in: query
- *         name: city
- *         required: false
- *         schema:
- *           type: string
- *           description: City name to fetch weather for (defaults to Amman)
- *           example: London
- *       - in: query
  *         name: search
  *         required: false
  *         schema:
@@ -48,18 +41,10 @@ const router = express.Router();
  *           example: 10
  *     responses:
  *       '200':
- *         description: List of companies along with current weather
+ *         description: List of companies
  *         content:
  *           application/json:
  *             example:
- *               weather:
- *                 city: London
- *                 country: GB
- *                 temp: 18.5
- *                 feels_like: 18.2
- *                 humidity: 65
- *                 condition: clear sky
- *                 icon: https://openweathermap.org/img/wn/01d@2x.png
  *               total: 42
  *               page: 1
  *               totalPages: 5
