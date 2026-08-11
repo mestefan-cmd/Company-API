@@ -1,44 +1,64 @@
-const https = require('https');
+const GOVERNORATES = [
+    { id: 1,  name: 'Amman' },
+    { id: 2,  name: 'Zarqa' },
+    { id: 3,  name: 'Irbid' },
+    { id: 4,  name: 'Aqaba' },
+    { id: 5,  name: 'Mafraq' },
+    { id: 6,  name: 'Jerash' },
+    { id: 7,  name: 'Ajloun' },
+    { id: 8,  name: 'Madaba' },
+    { id: 9,  name: 'Balqa' },
+    { id: 10, name: 'Karak' },
+    { id: 11, name: 'Tafilah' },
+    { id: 12, name: "Ma'an" }
+];
 
-const fetchWeather = (city = 'Amman') => {
-    return new Promise((resolve) => {
-        const apiKey = process.env.OPENWEATHER_API_KEY || '2d8b3b54860ec7465a84839cbf785fc7';
-        const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${apiKey}&units=metric`;
-
-        const options = {
-            rejectUnauthorized: false
-        };
-
-        https.get(url, options, (res) => {
-            let body = '';
-            res.on('data', chunk => body += chunk);
-            res.on('end', () => {
-                try {
-                    const data = JSON.parse(body);
-                    if (res.statusCode !== 200) {
-                        return resolve({
-                            city,
-                            error: data.message || 'Unable to fetch weather data'
-                        });
-                    }
-
-                    resolve({
-                        city: data.name,
-                        country: data.sys?.country,
-                        temp: data.main?.temp,
-                        feels_like: data.main?.feels_like,
-                        humidity: data.main?.humidity,
-                        condition: data.weather?.[0]?.description,
-                        icon: data.weather?.[0]?.icon ? `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png` : null
-                    });
-                } catch (err) {
-                    resolve({ city, error: 'Invalid response from weather provider' });
-                }
-            });
-        }).on('error', (err) => {
-            resolve({ city, error: err.message || 'Failed to connect to weather service' });
-        });
-    });
+const getGovernorates = () => {
+    return GOVERNORATES;
 };
 
-module.exports = { fetchWeather };
+const getGovernorateById = (id) => {
+    const numericId = Number(id);
+    return GOVERNORATES.find(gov => gov.id === numericId) || null;
+};
+
+const fetchWeatherByGovernorateId = async (id) => {
+    const governorate = getGovernorateById(id);
+    if (!governorate) {
+        const err = new Error(`Invalid governorate ID: ${id}`);
+        err.code = 'INVALID_GOVERNORATE';
+        throw err;
+    }
+
+    try {
+        const baseUrl = process.env.OPENWEATHER_BASE_URL;
+        const apiKey  = process.env.OPENWEATHER_API_KEY;
+        const url     = `${baseUrl}?q=${encodeURIComponent(governorate.name)}&appid=${apiKey}&units=metric`;
+
+        const response = await fetch(url);
+        if (!response.ok) {
+            console.error(`OpenWeather API error: ${response.status} for ${governorate.name}`);
+            return null;
+        }
+
+        const data = await response.json();
+
+        return {
+            id: governorate.id,
+            governorate: governorate.name,
+            country: data.sys?.country,
+            temp: data.main?.temp,
+            feels_like: data.main?.feels_like,
+            humidity: data.main?.humidity,
+        };
+    } catch (err) {
+        console.error(`Failed to fetch weather for ${governorate.name}:`, err.message);
+        return null;
+    }
+};
+
+module.exports = {
+    getGovernorates,
+    getGovernorateById,
+    fetchWeatherByGovernorateId
+};

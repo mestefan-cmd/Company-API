@@ -8,15 +8,15 @@ module.exports = {
         name: 'Bank Al Ethiad',
         email: 'BAE@tech.com',
         address: 'KHBP',
-        created_at: new Date(),
-        updated_at: new Date()
+        createdAt: new Date(),
+        updatedAt: new Date()
       },
       {
         name: 'Oracle',
         email: 'contact@oracle.com',
         address: 'KHBP',
-        created_at: new Date(),
-        updated_at: new Date()
+        createdAt: new Date(),
+        updatedAt: new Date()
       }
     ], {});
   },
